@@ -13,65 +13,26 @@ namespace theGame
         private PlayerDataModel _playerDataModel;
 
         private bool _isNeedSave = false;
-        private float _timeToNextSave = 0.0f;
-        private const float _constWaitTime = 2.0f;
 
         private string _fileName = Application.identifier + ".data";
-
-        // Use this for initialization
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            UpdateSaveTime();
-        }
 
         public override void Init()
         {
             Load();
-
-            //StartCoroutine(SaveGameData());
-        }
-
-        private void UpdateSaveTime()
-        {
-            if (_isNeedSave)
-            {
-                _timeToNextSave -= Time.deltaTime;
-                if (_timeToNextSave <= 0)
-                {
-                    Save();
-                    _isNeedSave = false;
-                }
-            }
         }
 
         #region Save / Load
         private IEnumerator SaveGameData()
         {
-            while (true)
-            {
-                yield return new WaitForSeconds(60);
+            yield return new WaitForSeconds(60);
 
-                Save();
-            }
+            _isNeedSave = false;
+            Save();
         }
 
         void Load()
         {
-            var path = Helper.GetPathToFileDirectory() + _fileName;
-            var serializedInput = "";
-
-            if (File.Exists(path))
-            {
-                var fileReader = new StreamReader(path, Encoding.ASCII);
-                serializedInput = fileReader.ReadLine();
-                fileReader.Close();
-            }
+            var serializedInput = FileUtils.LoadTextFromFile(_fileName);
 
             if (string.IsNullOrEmpty(serializedInput))
             {
@@ -88,13 +49,15 @@ namespace theGame
             }
 
             if(_playerDataModel.langId != -1)
-                Lang.Instance.SetLang((SystemLanguage)_playerDataModel.langId);
+                Lang.Instance.CurLang = (SystemLanguage)_playerDataModel.langId;
         }
 
         public void SaveTime()
         {
+            if (!_isNeedSave)
+                StartCoroutine(SaveGameData());
+
             _isNeedSave = true;
-            _timeToNextSave = _constWaitTime;
         }
 
         public void Save()
@@ -105,14 +68,9 @@ namespace theGame
             _playerDataModel = TheGame.GetComponent<GamePlayer>().GetPlayerData();
             _playerDataModel.langId = (int)Lang.Instance.CurLang;
 
-            StreamWriter fileWriter = null;
-            fileWriter = File.CreateText(Helper.GetPathToFileDirectory() + _fileName);
-
             var serializedOutput = JsonUtility.ToJson(_playerDataModel);
-            //Debug.Log(serializedOutput);
-
-            fileWriter.WriteLine(serializedOutput);
-            fileWriter.Close();
+            
+            FileUtils.SaveTextToFile(_fileName, serializedOutput);
 
             Debug.Log("Save Game");
         }

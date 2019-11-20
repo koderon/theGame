@@ -146,40 +146,13 @@ public static class Helper
 
     public static float SyncRand(float min, float max)
     {
-        if (IsEqual(min, max))
+        if (Mathf.Abs(min - max) < 0.001f)
             return min;
-        int dist = (int)(10000.0f * (max - min));
+
+        var dist = (int)(10000.0f * (max - min));
         return (GetRandom() % dist) / 10000.0f + min;
     }
 
-    public static List<int> GetSyncRandIndexInList(int count, int countRand)
-    {
-        var indexs = new List<int>();
-        for (int i = 0; i < count; i++)
-        {
-            indexs.Add(i);
-        }
-
-        var rIndex = new List<int>();
-        while (rIndex.Count < countRand)
-        {
-            var r = Helper.SyncRand(0, indexs.Count);
-            var index = indexs[r];
-            indexs.RemoveAt(r);
-
-            if (indexs.Count <= 0)
-                break;
-
-            rIndex.Add(index);
-        }
-
-        return rIndex;
-    }
-
-    public static bool IsEqual(float v0, float v1, float epsilon = 0.001f)
-    {
-        return Mathf.Abs(v0 - v1) < epsilon;
-    }
 
     public static string ConvertNumberToGoldString(int number)
     {
@@ -210,23 +183,6 @@ public static class Helper
         return v;
     }
 
-    public static string GetPathToFileDirectory()
-    {
-        string path = "";
-#if UNITY_IPHONE && !UNITY_EDITOR
-	        string fileNameBase = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
-	        path = fileNameBase.Substring(0, fileNameBase.LastIndexOf('/')) + "/Documents/";
-#elif UNITY_ANDROID && !UNITY_EDITOR
-            path = Application.persistentDataPath + "/";
-#else
-        path = Application.persistentDataPath + "/";
-#endif
-
-        //Debug.LogError("Path to File := " + path);
-
-        return path;
-    }
-
     public static string CheckJson(string lngResText)
     {
         var textMass = lngResText.Split('\n');
@@ -249,16 +205,6 @@ public static class Helper
         }
 
         return newText;
-    }
-
-    public static Color GetColorShadow(bool isDay)
-    {
-        return isDay ? new Color(0, 0, 0, 0.3f) : new Color(1, 1, 1, 0.3f);
-    }
-
-    public static void GotoLike()
-    {
-        
     }
 
     public static Color GetColorFromString(string color)
